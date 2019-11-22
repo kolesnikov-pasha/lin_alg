@@ -14,6 +14,40 @@ for permutation in all_permutations:
         print("(0 1 2 3 4 5 6 7)")
         print("(", " ".join(str(i) for i in p.permutation), ")", sep="")
 print("Задание 2.")
+a = SquareMatrix([
+    [2, -2, 2, -3],
+    [1, -3, 2, -1],
+    [1, 1, -3, 3],
+    [-2, -3, 3, 2]
+])
+c = SquareMatrix([
+    [2, 2, 3, 1],
+    [2, 1, 1, -2],
+    [2, 1, -1, -1],
+    [-1, 2, -1, 2]
+])
+d = SquareMatrix([
+    [-1, -1, -1, -1],
+    [-1, -2, -2, -2],
+    [-1, -2, -3, -1],
+    [1, 2, 3, 2]
+])
+b = SquareMatrix([
+    [-9, 3, 9, -4],
+    [-6, -2, 4, 9],
+    [-9, 6, 10, -3],
+    [6, -10, 9, 6]
+])
+left = SquareMatrix((SquareMatrix.get_e(4).multiply_on_number(a.compute_det() * c.compute_det()) +
+                     (b * c.get_adjugate_matrix() * d * c.get_adjugate_matrix()).multiply_on_number(-1)).matrix)
+left = left * c * d.get_adjugate_matrix() * a
+print("result = ")
+print(str(1) + "\n" + str(c.compute_det() * d.compute_det() * a.compute_det()))
+print(left.multiply_on_number(1/851))
+#left = SquareMatrix.get_e(4) + (right * m4).multiply_on_number(-1)
+#x = left * right.get_adjugate_matrix()
+#print(str(x))
+print("Задание 3.")
 print("Характеристичексий многочлен:")
 a = SquareMatrix([
     [-3, -4, -1, 4],
