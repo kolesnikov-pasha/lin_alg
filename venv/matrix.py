@@ -1,47 +1,52 @@
 # coding=utf-8
-# в качестве has нужно передавать список элементов,
-# все перестановки которых мы хотим получить, например, (0, 1, 2, 3, 4, 5)
 
 
-def get_permutations(n, has):
-    if n == 0:
-        return [[]]
-    result = []
-    for v in range(n):
-        permutations = get_permutations(n - 1, has[:v] + has[v + 1:])
-        for permutation in permutations:
-            result.append([has[v]] + permutation)
-    return result
+class Permutation:
+    def __init__(self, values):
+        self.n = len(values)
+        self.permutation = values
+
+    # в качестве has нужно передавать список элементов,
+    # все перестановки которых мы хотим получить, например, (0, 1, 2, 3, 4, 5)
+    @staticmethod
+    def get_permutations(n, has):
+        if n == 0:
+            return [[]]
+        result = []
+        for v in range(n):
+            permutations = Permutation.get_permutations(n - 1, has[:v] + has[v + 1:])
+            for permutation in permutations:
+                result.append([has[v]] + permutation)
+        return result
+
+    @staticmethod
+    def get_all_subsets(arr, new_size):
+        if new_size == 0:
+            return [[]]
+        if new_size > len(arr):
+            return []
+        if new_size == len(arr):
+            return [arr]
+        res = []
+        ss = get_all_subsets(arr[1:], new_size - 1)
+        if len(ss) > 0:
+            for el in ss:
+                res.append([arr[0]] + el)
+        res += get_all_subsets(arr[1:], new_size)
+        return res
+
+    def get_permutation_sign(self):
+        cnt = 0
+        for i in range(len(self.permutation)):
+            for j in range(i + 1, len(self.permutation)):
+                if self.permutation[i] > self.permutation[j]:
+                    cnt += 1
+        if cnt % 2 == 1:
+            return -1
+        return 1
 
 
-def get_all_subsets(arr, new_size):
-    if new_size == 0:
-        return [[]]
-    if new_size > len(arr):
-        return []
-    if new_size == len(arr):
-        return [arr]
-    res = []
-    ss = get_all_subsets(arr[1:], new_size - 1)
-    if len(ss) > 0:
-        for el in ss:
-            res.append([arr[0]] + el)
-    res += get_all_subsets(arr[1:], new_size)
-    return res
-
-
-def get_permutation_sign(permutation):
-    cnt = 0
-    for i in range(len(permutation)):
-        for j in range(i + 1, len(permutation)):
-            if permutation[i] > permutation[j]:
-                cnt += 1
-    if cnt % 2 == 1:
-        return -1
-    return 1
-
-
-class Matrix: 
+class Matrix:
     def __init__(self, values):
         self.columns_count = len(values)
         self.rows_count = len(values[0])
@@ -86,13 +91,13 @@ class SquareMatrix(Matrix):
     def compute_det(self):
         if self.is_det_computed:
             return self.det
-        permutations = get_permutations(self.n, list(range(self.n)))
+        permutations = Permutation.get_permutations(self.n, list(range(self.n)))
         value = 0
         for permutation in permutations:
             x = 1
             for i in range(self.n):
                 x *= self.matrix[i][permutation[i]]
-            value += get_permutation_sign(permutation) * x
+            value += Permutation(permutation).get_permutation_sign() * x
         if self.n == 0:
             value = 1
         self.is_det_computed = True
@@ -111,7 +116,7 @@ class SquareMatrix(Matrix):
                         x += 1
                 y += 1
                 x = 0
-        return SquareMatrix(values)
+        return SquareMatrix(values).compute_det()
 
     def get_r(self, arr_i):
         real_indexes = sorted(list(set(range(self.n)) - set(arr_i)))
@@ -126,7 +131,7 @@ class SquareMatrix(Matrix):
         multiplier = -1
         for i in range(1, self.n + 1):
             ans_i = 0
-            subsets_i = get_all_subsets(list(range(self.n)), self.n - i)
+            subsets_i = Permutation.get_all_subsets(list(range(self.n)), self.n - i)
             for subset in subsets_i:
                 ans_i += self.get_r(subset).compute_det()
             ans.append(multiplier * ans_i)
@@ -141,7 +146,7 @@ class SquareMatrix(Matrix):
         return SquareMatrix(values)
 
     def __pow__(self, power):
-        if type(power) != type(0):
+        if not isinstance(power, int):
             raise Exception("Не умеем возводить в нецелые степени:(")
         if power < 0:
             power = abs(power) - 1
@@ -150,21 +155,32 @@ class SquareMatrix(Matrix):
             result *= self
         return result
 
+    def get_cofactor_matrix(self):
+        values = [[0] * self.n for _ in range(self.n)]
+        for i in range(self.n):
+            for j in range(self.n):
+                values[i][j] = self.get_minor(i, j) * (-1) ** (i + j)
+        return SquareMatrix(values)
+
+    def get_adjugate_matrix(self):
+        return self.get_cofactor_matrix().get_transposed()
+
     def get_inverse_matrix(self):
-        raise NotImplementedError
+        det = self.compute_det()
+        if det == 0:
+            raise Exception("Матрица необратима")
+        adj_m = self.get_adjugate_matrix()
+        adj_m.multiply_on_number(1 / det)
+        return adj_m
 
 
 m1 = SquareMatrix([
-    [-3, -4, -1,  4],
-    [1,  -4, -3,  3],
-    [-5, -2,  2,  2],
-    [ 0,  0,  2,  2]
+    [1, 1, 1, 1],
+    [1, 1, 1, 1],
+    [1, 1, 1, 1],
+    [1, 1, 1, 1]
 ])
-m2 = SquareMatrix([
-    [-3, -4, -1,  4],
-    [1,  -4, -3,  3],
-    [-5, -2,  2,  2],
-    [ 0,  0,  2,  2]
-])
-print((m1 * m2).matrix)
-print((m2.get_minor(2, 1)).matrix)
+m2 = SquareMatrix.get_e(4)
+print((m1 ** 2).matrix)
+print((m2.get_inverse_matrix()).matrix)
+print("\n".join(map(str, (m1.get_adjugate_matrix()).matrix)))
