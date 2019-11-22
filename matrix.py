@@ -1,49 +1,5 @@
 # coding=utf-8
-
-
-class Permutation:
-    def __init__(self, values):
-        self.n = len(values)
-        self.permutation = values
-
-    # в качестве has нужно передавать список элементов,
-    # все перестановки которых мы хотим получить, например, (0, 1, 2, 3, 4, 5)
-    @staticmethod
-    def get_permutations(n, has):
-        if n == 0:
-            return [[]]
-        result = []
-        for v in range(n):
-            permutations = Permutation.get_permutations(n - 1, has[:v] + has[v + 1:])
-            for permutation in permutations:
-                result.append([has[v]] + permutation)
-        return result
-
-    @staticmethod
-    def get_all_subsets(arr, new_size):
-        if new_size == 0:
-            return [[]]
-        if new_size > len(arr):
-            return []
-        if new_size == len(arr):
-            return [arr]
-        res = []
-        ss = get_all_subsets(arr[1:], new_size - 1)
-        if len(ss) > 0:
-            for el in ss:
-                res.append([arr[0]] + el)
-        res += get_all_subsets(arr[1:], new_size)
-        return res
-
-    def get_permutation_sign(self):
-        cnt = 0
-        for i in range(len(self.permutation)):
-            for j in range(i + 1, len(self.permutation)):
-                if self.permutation[i] > self.permutation[j]:
-                    cnt += 1
-        if cnt % 2 == 1:
-            return -1
-        return 1
+from permutation import Permutation
 
 
 class Matrix:
@@ -172,15 +128,3 @@ class SquareMatrix(Matrix):
         adj_m = self.get_adjugate_matrix()
         adj_m.multiply_on_number(1 / det)
         return adj_m
-
-
-m1 = SquareMatrix([
-    [1, 1, 1, 1],
-    [1, 1, 1, 1],
-    [1, 1, 1, 1],
-    [1, 1, 1, 1]
-])
-m2 = SquareMatrix.get_e(4)
-print((m1 ** 2).matrix)
-print((m2.get_inverse_matrix()).matrix)
-print("\n".join(map(str, (m1.get_adjugate_matrix()).matrix)))
