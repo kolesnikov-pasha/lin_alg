@@ -44,3 +44,30 @@ class Permutation:
         if cnt % 2 == 1:
             return -1
         return 1
+
+    def __mul__(self, other):
+        if len(self.permutation) != len(other.permutation):
+            raise Exception("Перестановки не могут быть разного размера")
+        values = [0] * self.n
+        for i in range(self.n):
+            values[i] = self.permutation[other.permutation[i]]
+        return Permutation(values)
+
+    def get_inverse_permutation(self):
+        values = [0] * self.n
+        for i in range(self.n):
+            values[self.permutation[i]] = i
+        return Permutation(values)
+
+    def __pow__(self, power, modulo=None):
+        result = Permutation(list(range(self.n)))
+        for _ in range(abs(power)):
+            result = result * self
+        if power < 0:
+            return result.get_inverse_permutation()
+        else:
+            return result
+
+
+p1 = Permutation([1, 4, 3, 0, 5, 2])
+print((p1 * p1.get_inverse_permutation()).permutation)
