@@ -67,7 +67,3 @@ class Permutation:
             return result.get_inverse_permutation()
         else:
             return result
-
-
-p1 = Permutation([1, 4, 3, 0, 5, 2])
-print((p1 * p1.get_inverse_permutation()).permutation)

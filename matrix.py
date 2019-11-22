@@ -4,12 +4,21 @@ from permutation import Permutation
 
 class Matrix:
     def __init__(self, values):
-        self.columns_count = len(values)
-        self.rows_count = len(values[0])
+        self.rows_count = len(values)
+        self.columns_count = len(values[0])
         for row in values:
-            if len(row) != self.rows_count:
-                raise Exception
+            if len(row) != self.columns_count:
+                raise Exception("Количество элементов в строчках не равны")
         self.matrix = values
+
+    def __add__(self, other):
+        if self.columns_count != other.columns_count or self.rows_count != other.rows_count:
+            raise Exception("Матрицы должны быть одного размера!")
+        values = [[0] * self.columns_count for _ in range(self.rows_count)]
+        for i in range(self.rows_count):
+            for j in range(self.columns_count):
+                values[i][j] = self.matrix[i][j] + other.matrix[i][j]
+        return Matrix(values)
 
     def __mul__(self, other):
         if self.columns_count != other.rows_count:
@@ -22,9 +31,11 @@ class Matrix:
         return Matrix(values)
 
     def multiply_on_number(self, x):
+        values = [[0] * self.columns_count for _ in range(self.rows_count)]
         for i in range(self.rows_count):
             for j in range(self.columns_count):
-                self.matrix[i][j] *= x
+                values[i][j] = x * self.matrix[i][j]
+        return Matrix(values)
 
     def get_transposed(self):
         values = [[0] * self.rows_count for _ in range(self.columns_count)]
@@ -128,7 +139,7 @@ class SquareMatrix(Matrix):
         result = SquareMatrix.get_e(self.n)
         for i in range(power):
             result *= self
-        return result
+        return SquareMatrix(result.matrix)
 
     def get_cofactor_matrix(self):
         values = [[0] * self.n for _ in range(self.n)]
@@ -145,5 +156,5 @@ class SquareMatrix(Matrix):
         if det == 0:
             raise Exception("Матрица необратима")
         adj_m = self.get_adjugate_matrix()
-        adj_m.multiply_on_number(1 / det)
-        return adj_m
+        adj_m = adj_m.multiply_on_number(1 / det)
+        return SquareMatrix(adj_m.matrix)
