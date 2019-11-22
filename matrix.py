@@ -33,6 +33,25 @@ class Matrix:
                 values[j][i] = self.matrix[i][j]
         return Matrix(values)
 
+    def __str__(self):
+        sizes = [[0] * self.columns_count for _ in range(self.rows_count)]
+        for i, row in enumerate(self.matrix):
+            for j, el in enumerate(row):
+                sizes[i][j] = max(sizes[i][j], len(str(el)))
+        res = ""
+        for i in range(self.rows_count):
+            res += "|"
+            for j in range(self.columns_count):
+                el_len = len(str(self.matrix[i][j]))
+                if j < self.columns_count - 1:
+                    res += str(self.matrix[i][j]) + "  " + " " * (sizes[i][j] - el_len)
+                else:
+                    res += str(self.matrix[i][j])
+            res += "|"
+            if i < self.rows_count - 1:
+                res += "\n"
+        return res
+
 
 class SquareMatrix(Matrix):
     def __init__(self, values):
@@ -105,7 +124,7 @@ class SquareMatrix(Matrix):
         if not isinstance(power, int):
             raise Exception("Не умеем возводить в нецелые степени:(")
         if power < 0:
-            power = abs(power) - 1
+            return self.get_inverse_matrix() ** abs(power)
         result = SquareMatrix.get_e(self.n)
         for i in range(power):
             result *= self
@@ -119,7 +138,7 @@ class SquareMatrix(Matrix):
         return SquareMatrix(values)
 
     def get_adjugate_matrix(self):
-        return self.get_cofactor_matrix().get_transposed()
+        return SquareMatrix(self.get_cofactor_matrix().get_transposed().matrix)
 
     def get_inverse_matrix(self):
         det = self.compute_det()
