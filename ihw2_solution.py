@@ -20,6 +20,12 @@ a = SquareMatrix([
     [1, 1, -3, 3],
     [-2, -3, 3, 2]
 ])
+b = SquareMatrix([
+    [-9, 3, 9, -4],
+    [-6, -2, 4, 9],
+    [-9, 6, 10, -3],
+    [6, -10, 9, 6]
+])
 c = SquareMatrix([
     [2, 2, 3, 1],
     [2, 1, 1, -2],
@@ -32,29 +38,18 @@ d = SquareMatrix([
     [-1, -2, -3, -1],
     [1, 2, 3, 2]
 ])
-b = SquareMatrix([
-    [-9, 3, 9, -4],
-    [-6, -2, 4, 9],
-    [-9, 6, 10, -3],
-    [6, -10, 9, 6]
-])
-left = SquareMatrix((SquareMatrix.get_e(4).multiply_on_number(a.compute_det() * c.compute_det()) +
-                     (b * c.get_adjugate_matrix() * d * c.get_adjugate_matrix()).multiply_on_number(-1)).matrix)
+left = (SquareMatrix.get_e(4).multiply_on_number(a.compute_det() * c.compute_det()) -
+        (b * c.get_adjugate_matrix() * d * c.get_adjugate_matrix()))
 left = left * c * d.get_adjugate_matrix() * a
-print("result = ")
-print(str(1) + "\n" + str(c.compute_det() * d.compute_det() * a.compute_det()))
+print("Определителитель матрицы, на которую домножаем = ", (c * d.get_adjugate_matrix() * a).compute_det())
 print(left.multiply_on_number(1/851))
-#left = SquareMatrix.get_e(4) + (right * m4).multiply_on_number(-1)
-#x = left * right.get_adjugate_matrix()
-#print(str(x))
 print("Задание 3.")
 print("Характеристичексий многочлен:")
 a = SquareMatrix([
-    [-3, -4, -1, 4],
-    [1, -4, -3, 3],
-    [-5, -2, 2, 2],
-    [0, 0, 2, -2],
-])
+ [-5.55111512e-17, -3.17915329e-02,  3.66312778e-02,  6.16848637e-02],
+ [ 6.73794700e-03, 1.53740961e-02,  1.15776919e-02,  9.67948978e-03],
+ [-6.73794700e-03,  2.94154278e-03, -1.15776919e-02, -2.79951287e-02],
+ [ 6.73794700e-03, -2.94154278e-03,  2.98933308e-02,  4.63107676e-02]])
 for i, a_i in enumerate(a.get_characteristic_polynomial()[:4]):
     print("(" + str(a_i) + ")x^" + str(4 - i) + " + ", end="")
 print("(" + str(a.get_characteristic_polynomial()[4]) + ")")

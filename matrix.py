@@ -1,11 +1,25 @@
 # coding=utf-8
 from permutation import Permutation
+from fractions import gcd
+
+
+def lcm(values: list):
+    if len(values) < 1:
+        return 1
+    result = values[0]
+    for v in values[1:]:
+        result = result * v // gcd(result, v)
+    return result
 
 
 class Matrix:
     def __init__(self, values):
         self.rows_count = len(values)
+        if self.rows_count == 0:
+            raise Exception("Я не поддерживаю матрицы нулевого размера")
         self.columns_count = len(values[0])
+        if self.columns_count == 0:
+            raise Exception("Я не поддерживаю матрицы нулевого размера")
         for row in values:
             if len(row) != self.columns_count:
                 raise Exception("Количество элементов в строчках не равны")
@@ -13,12 +27,17 @@ class Matrix:
 
     def __add__(self, other):
         if self.columns_count != other.columns_count or self.rows_count != other.rows_count:
-            raise Exception("Матрицы должны быть одного размера!")
+            raise Exception("Матрицы должны быть одного размера")
         values = [[0] * self.columns_count for _ in range(self.rows_count)]
         for i in range(self.rows_count):
             for j in range(self.columns_count):
                 values[i][j] = self.matrix[i][j] + other.matrix[i][j]
+        if self.columns_count == self.rows_count:
+            return SquareMatrix(values)
         return Matrix(values)
+
+    def __sub__(self, other):
+        return self + other.multiply_on_number(-1)
 
     def __mul__(self, other):
         if self.columns_count != other.rows_count:
@@ -28,6 +47,8 @@ class Matrix:
             for j in range(len(values[i])):
                 for k in range(self.columns_count):
                     values[i][j] += self.matrix[i][k] * other.matrix[k][j]
+        if other.columns_count == self.rows_count:
+            return SquareMatrix(values)
         return Matrix(values)
 
     def multiply_on_number(self, x):
@@ -35,6 +56,8 @@ class Matrix:
         for i in range(self.rows_count):
             for j in range(self.columns_count):
                 values[i][j] = x * self.matrix[i][j]
+        if self.columns_count == self.rows_count:
+            return SquareMatrix(values)
         return Matrix(values)
 
     def get_transposed(self):
@@ -42,6 +65,8 @@ class Matrix:
         for i in range(self.rows_count):
             for j in range(self.columns_count):
                 values[j][i] = self.matrix[i][j]
+        if self.rows_count == self.columns_count:
+            return SquareMatrix(values)
         return Matrix(values)
 
     def __str__(self):
@@ -63,6 +88,42 @@ class Matrix:
                 res += "\n"
         return res
 
+    def rank(self):
+        matrix = self.matrix
+        start = 0
+        for i in range(self.columns_count):
+            this_column = [matrix[row][i] for row in range(start, self.rows_count)]
+            this_column = list(filter(lambda x: x != 0, this_column))
+            current_lcm = lcm(this_column)
+            for j in range(start, self.rows_count):
+                if matrix[j][i] == 0:
+                    continue
+                multiplier = current_lcm // matrix[j][i]
+                for k in range(self.columns_count):
+                    matrix[j][k] *= multiplier
+            first_not_zero_row_index = -1
+            for j in range(start, self.rows_count):
+                if matrix[j][i] != 0:
+                    first_not_zero_row_index = j
+                    break
+            if first_not_zero_row_index == -1:
+                continue
+            start = first_not_zero_row_index + 1
+            for j in range(first_not_zero_row_index + 1, self.rows_count):
+                if matrix[j][i] == 0:
+                    continue
+                for k in range(self.columns_count):
+                    matrix[j][k] -= matrix[first_not_zero_row_index][k]
+        all_zeros_rows_count = 0
+        for i in range(self.rows_count):
+            all_zeros = True
+            for j in range(self.columns_count):
+                all_zeros = all_zeros and (matrix[i][j] == 0)
+            if all_zeros:
+                all_zeros_rows_count += 1
+        print(Matrix(matrix))
+        return self.rows_count - all_zeros_rows_count
+
 
 class SquareMatrix(Matrix):
     def __init__(self, values):
@@ -73,6 +134,8 @@ class SquareMatrix(Matrix):
                 raise Exception("Не квадратная матрица")
         self.is_det_computed = False
         self.det = -1
+        self.is_adjugate_computed = False
+        self.adjugate = None
 
     def compute_det(self):
         if self.is_det_computed:
@@ -92,16 +155,8 @@ class SquareMatrix(Matrix):
 
     def get_minor(self, i, j):
         values = [[0] * (self.n - 1) for _ in range(self.n - 1)]
-        x = 0
-        y = 0
-        for row_ind, row in enumerate(self.matrix):
-            if row_ind != i:
-                for col_ind, column in enumerate(row):
-                    if col_ind != j:
-                        values[y][x] = column
-                        x += 1
-                y += 1
-                x = 0
+        for i, row in enumerate(self.matrix[:i] + self.matrix[i + 1:]):
+            values[i] = row[:j] + row[j + 1:]
         return SquareMatrix(values).compute_det()
 
     def get_r(self, arr_i):
@@ -145,11 +200,15 @@ class SquareMatrix(Matrix):
         values = [[0] * self.n for _ in range(self.n)]
         for i in range(self.n):
             for j in range(self.n):
-                values[i][j] = self.get_minor(i, j) * (-1) ** (i + j)
+                values[i][j] = self.get_minor(i, j) * (-1) ** (i + j + 2)
         return SquareMatrix(values)
 
     def get_adjugate_matrix(self):
-        return SquareMatrix(self.get_cofactor_matrix().get_transposed().matrix)
+        if self.is_adjugate_computed:
+            return self.adjugate
+        self.adjugate = self.get_cofactor_matrix().get_transposed()
+        self.is_adjugate_computed = True
+        return self.adjugate
 
     def get_inverse_matrix(self):
         det = self.compute_det()
